@@ -50,6 +50,7 @@ dependencies {
 
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
+    implementation ("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
 
 

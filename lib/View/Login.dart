@@ -96,6 +96,7 @@ class _LoginState extends State<Login> {
                 height: (MediaQuery.sizeOf(context).height) * 0.05,
                 child: ElevatedButton(
                   onPressed: () async {
+
                     adddata();
                     final lc = Login_Controller();
                     if (await lc.signIn(
