@@ -3,14 +3,14 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:krushi_admin/controller/Firebase_Controller.dart';
 
-class Add_Village_Friend extends StatefulWidget {
-  const Add_Village_Friend({super.key});
+class Add_Sarpanch extends StatefulWidget {
+  const Add_Sarpanch({super.key});
 
   @override
-  State<Add_Village_Friend> createState() => _Add_Village_FriendState();
+  State<Add_Sarpanch> createState() => _Add_SarpanchState();
 }
 
-class _Add_Village_FriendState extends State<Add_Village_Friend> {
+class _Add_SarpanchState extends State<Add_Sarpanch> {
   final GlobalKey<FormState> KEY= GlobalKey<FormState>();
   var name = TextEditingController();
   var contact = TextEditingController();
@@ -270,11 +270,11 @@ class _Add_Village_FriendState extends State<Add_Village_Friend> {
                       };
 
                    Firebbase_Controller.singUp(email.text.toString(), password.text.toString());
-                      Firebbase_Controller.addData("GamMitra", data);
+                      Firebbase_Controller.addData("Sarpanch", data);
                       Firebbase_Controller.addUserData(
                         email.text.toString(),
                         password.text.toString(),
-                        "Gam Mitra",
+                        "Sarpanch",
                       );
                       name.clear();
                       contact.clear();

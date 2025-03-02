@@ -1,10 +1,5 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:uuid/uuid.dart';
-import 'package:path_provider/path_provider.dart';
 
 class Firebbase_Controller {
  static Future<void> addUserData(String email, String password, String role) async {
@@ -41,11 +36,10 @@ class Firebbase_Controller {
     }
   }
 
-  Future<void> deleteData(
+ static Future<void> deleteData(
 
     String collection,
     String id,
-    Map<String, dynamic> data,
   ) async {
     try {
       FirebaseFirestore.instance.collection(collection).doc(id).delete();

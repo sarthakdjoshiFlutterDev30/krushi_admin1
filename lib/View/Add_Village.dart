@@ -11,8 +11,7 @@ class AddVillage extends StatefulWidget {
 }
 
 class _AddVillageState extends State<AddVillage> {
-  final GlobalKey<FormState> KEY= GlobalKey<FormState>();
-
+  final GlobalKey<FormState> KEY = GlobalKey<FormState>();
   TextEditingController country = TextEditingController();
   TextEditingController state = TextEditingController();
   TextEditingController city = TextEditingController();
@@ -43,7 +42,9 @@ class _AddVillageState extends State<AddVillage> {
                     fillColor: Colors.blueGrey.shade100,
                     filled: true,
                     suffixIcon: const Icon(Icons.add),
-                    border: const OutlineInputBorder(borderSide: BorderSide.none),
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -52,7 +53,10 @@ class _AddVillageState extends State<AddVillage> {
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: "Enter Village",
-                    hintStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    hintStyle: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(20),
@@ -102,7 +106,9 @@ class _AddVillageState extends State<AddVillage> {
                         "city": city.text.trim().toString(),
                         "village": village.text.trim().toString(),
                       };
-                   Firebbase_Controller.addData("location", data).then((value) {
+                      Firebbase_Controller.addData("location", data).then((
+                        value,
+                      ) {
                         village.clear();
                         country.clear();
                         state.clear();

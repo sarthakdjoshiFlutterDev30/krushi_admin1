@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:krushi_admin/controller/login_controller.dart';
 
 import 'Add_Farmer.dart';
+import 'Add_Sarpanch.dart';
 import 'Add_Village.dart';
-import 'Add_Village_Friend.dart';
 import 'View_Farmer.dart';
-import 'View_GamMiitra.dart';
+import 'View_Sarpanch.dart';
 import 'View_Users.dart';
 
 class Home extends StatefulWidget {
@@ -26,19 +26,19 @@ class _HomeState extends State<Home> {
   ];
   List<String> nm=[
     "Add Village",
-    "Add Village Friend",
+    "Add Sarpanch",
     "Add Farmer",
     "View All Farmer",
     "View All Users",
-    "View All GamMitra",
+    "View All Sarpanch",
   ];
   List nav=[
      AddVillage(),
-    Add_Village_Friend(),
+    Add_Sarpanch(),
     Add_Farmer(),
     FarmerView(),
     ViewUsers(),
-    ViewGammiitra(),
+    ViewSarpanch(),
   ];
 
   @override

@@ -4,12 +4,12 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:krushi_admin/Splash.dart';
 import 'package:krushi_admin/View/Add_Farmer.dart';
+import 'package:krushi_admin/View/Add_Sarpanch.dart';
 import 'package:krushi_admin/View/Add_Village.dart';
-import 'package:krushi_admin/View/Add_Village_Friend.dart';
 import 'package:krushi_admin/View/Home.dart';
 import 'package:krushi_admin/View/Login.dart';
 import 'package:krushi_admin/View/View_Farmer.dart';
-import 'package:krushi_admin/View/View_GamMiitra.dart';
+import 'package:krushi_admin/View/View_Sarpanch.dart';
 import 'package:krushi_admin/View/View_Users.dart';
 import 'package:krushi_admin/firebase_options.dart';
 
@@ -49,11 +49,11 @@ class MyApp extends StatelessWidget {
         "/login": (context) => Login(),
         "/home": (context) => Home(),
         "/add_village": (context) => AddVillage(),
-        "/add_village_friend": (context) => Add_Village_Friend(),
+        "/add_village_friend": (context) => Add_Sarpanch(),
         "/add_farmer":(context)=>Add_Farmer(),
         "/View_Farmer":(context)=>FarmerView(),
         "/View_User":(context)=>ViewUsers(),
-        "/View_Gm":(context)=>ViewGammiitra(),
+        "/View_Gm": (context) => ViewSarpanch(),
       },
     );
   }

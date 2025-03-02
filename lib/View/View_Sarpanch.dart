@@ -1,23 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:krushi_admin/Model/GamMitra_Model.dart';
+import 'package:krushi_admin/Model/Sarpanch_Model.dart';
 
-class ViewGammiitra extends StatefulWidget {
-  const ViewGammiitra({super.key});
+
+class ViewSarpanch extends StatefulWidget {
+  const ViewSarpanch({super.key});
 
   @override
-  State<ViewGammiitra> createState() => _ViewGammiitraState();
+  State<ViewSarpanch> createState() => _ViewSarpanchState();
 }
 
-class _ViewGammiitraState extends State<ViewGammiitra> {
+class _ViewSarpanchState extends State<ViewSarpanch> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("View_Gammitra"),
+        title: Text("View Sarpanch"),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('GamMitra').snapshots(),
+        stream: FirebaseFirestore.instance.collection('Sarpanch').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -33,7 +34,7 @@ class _ViewGammiitraState extends State<ViewGammiitra> {
 
           final GamMitra =
           snapshot.data!.docs
-              .map((doc) => GamMitra_Model.fromFirestore(doc))
+              .map((doc) => sarpanch_Model.fromFirestore(doc))
               .toList();
 
           return ListView.builder(
@@ -67,12 +68,13 @@ class _ViewGammiitraState extends State<ViewGammiitra> {
   }
 }
 class gmDetailScreen extends StatelessWidget {
-  final GamMitra_Model gm;
+  final sarpanch_Model gm;
 
   const gmDetailScreen({Key? key, required this.gm}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(title: Text(gm.name)),
       body: Padding(
@@ -88,7 +90,7 @@ class gmDetailScreen extends StatelessWidget {
             SizedBox(height: 8),
             Text('Contact: ${gm.contact}'),
             SizedBox(height: 8),
-            Text('Aadhaar Card: ${gm.aadhaarCard}'),
+            Text('Aadhaar Card: ${'*' * gm.aadhaarCard.length}'),
           ],
         ),
       ),

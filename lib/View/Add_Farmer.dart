@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -15,94 +16,332 @@ class Add_Farmer extends StatefulWidget {
 }
 
 class _Add_FarmerState extends State<Add_Farmer> {
-  final GlobalKey<FormState> KEY= GlobalKey<FormState>();
-  var name = TextEditingController();
-  var contact = TextEditingController();
-  var aadhaarCard = TextEditingController();
-  var email = TextEditingController();
-  var password = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController contactController = TextEditingController();
+  final TextEditingController aadhaarCardController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
   int? selectedValue = 1;
-  var result = "Male";
+  String gender = "Male";
   File? _image;
   final ImagePicker _picker = ImagePicker();
   String? selectedVillage;
   List<String> villageNames = [];
   String? selectedVillageFriend;
   List<String> villageFriendNames = [];
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-    }
+  String dob = "Choose Date of Birth";
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchVillageNames();
   }
 
-  Future<void> register() async {
-    if (_image == null) return;
-
-    String fileName = Uuid().v1();
-    Reference storageRef = FirebaseStorage.instance.ref().child('Farmer-ProfilePic/$fileName');
-
-    try {
-      await storageRef.putFile(_image!);
-   String downloadUrl = await storageRef.getDownloadURL();
-      Map<String, dynamic> data = {
-        "name": name.text.trim(),
-        "contact": contact.text.trim(),
-        "aadhaarCard": aadhaarCard.text.trim(),
-        "dob": dob,
-        "gender": result,
-        "village": selectedVillage,
-        "village_friend": selectedVillageFriend,
-        "profilePicUrl": downloadUrl,
-      };
-
-    await Firebbase_Controller.addData("Farmer", data).then((_){
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("data Added")));
-      });
-
-    } catch (e) {
-      print('Error occurred while uploading: $e');
-    }
-  }
   Future<void> fetchVillageNames() async {
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('location').get();
-    List<String> names =
-        snapshot.docs.map((doc) => doc['village'] as String).toList();
-
+    QuerySnapshot snapshot = await FirebaseFirestore.instance.collection(
+        'location').get();
     setState(() {
-      villageNames = names;
+      villageNames =
+          snapshot.docs.map((doc) => doc['village'] as String).toList();
     });
   }
 
   Future<void> fetchVillageFriendNames() async {
     if (selectedVillage != null) {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('GamMitra')
+          .collection('Sarpanch')
           .where("village", isEqualTo: selectedVillage)
           .get();
-      List<String> names =
-      snapshot.docs.map((doc) => doc['name'] as String).toList();
-
       setState(() {
-        villageFriendNames = names;
+        villageFriendNames =
+            snapshot.docs.map((doc) => doc['name'] as String).toList();
       });
     }
   }
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    fetchVillageNames();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
   }
 
-  Row buildDateField(
-      String labelText,
-      String date,
-      Function(DateTime) onDatePicked,
-      ) {
+  Future<void> register() async {
+    if (_image == null) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    String fileName = Uuid().v1();
+    Reference storageRef = FirebaseStorage.instance.ref().child('Farmer-ProfilePic/$fileName');
+
+    try {
+      await storageRef.putFile(_image!);
+      String downloadUrl = await storageRef.getDownloadURL();
+      Map<String, dynamic> data = {
+        "name": nameController.text.trim(),
+        "contact": contactController.text.trim(),
+        "aadhaarCard": aadhaarCardController.text.trim(),
+        "isApprove": "No",
+        "dob": dob,
+        "gender": gender,
+        "village": selectedVillage,
+        "sarpanch": selectedVillageFriend,
+        "profilePicUrl": downloadUrl,
+      };
+
+      await Firebbase_Controller.addData("Farmer", data).then((e) {
+        nameController.clear();
+        contactController.clear();
+        aadhaarCardController.clear();
+        emailController.clear();
+        passwordController.clear();
+        dob = "Choose Date of Birth";
+        setState(() {
+          _image = null;
+          selectedVillage = null;
+          selectedVillageFriend = null;
+          villageFriendNames.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Form Submitted")));
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Data Added")));
+    } catch (e) {
+      print('Error occurred while uploading: $e');
+    } finally {
+      setState(() {
+        isLoading = false; // End loading
+      });
+    }
+  }
+
+  bool validateForm() {
+    return _formKey.currentState!.validate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Add Farmer"), centerTitle: true),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(8.0),
+          children: <Widget>[
+            DropdownButton<String>(
+              hint: const Text('Select a village'),
+              value: selectedVillage,
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedVillage = newValue;
+                  fetchVillageFriendNames();
+                });
+              },
+              items: villageNames.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            DropdownButton<String>(
+              hint: const Text('Select a Sarpanch'),
+              value: selectedVillageFriend,
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedVillageFriend = newValue;
+                });
+              },
+              items: villageFriendNames.map<DropdownMenuItem<String>>((
+                  String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            _image == null
+                ? const Text('No image selected.')
+                : CircleAvatar(
+              radius: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.4,
+              backgroundImage: FileImage(_image!),
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                hintText: "Enter Farmer Name",
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your name.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            buildDateField("Choose Date of Birth", dob, (picked) {
+              setState(() {
+                dob = "${picked.day}-${picked.month}-${picked.year}";
+              });
+            }),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => _pickImage(ImageSource.gallery),
+              child: const Text('Pick Image from Gallery'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => _pickImage(ImageSource.camera),
+              child: const Text('Pick Image from Camera'),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Radio.adaptive(
+                  value: 1,
+                  groupValue: selectedValue,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedValue = value;
+                      gender = "Male";
+                    });
+                  },
+                ),
+                const Text("Male"),
+                Radio.adaptive(
+                  value: 2,
+                  groupValue: selectedValue,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedValue = value;
+                      gender = "Female";
+                    });
+                  },
+                ),
+                const Text("Female"),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: contactController,
+              keyboardType: TextInputType.number,
+              maxLength: 10,
+              decoration: const InputDecoration(
+                hintText: "Enter Contact No.",
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your contact number.';
+                } else if (value.length < 10) {
+                  return 'Contact number must be at least 10 digits.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: aadhaarCardController,
+              keyboardType: TextInputType.number,
+              maxLength: 12,
+              decoration: const InputDecoration(
+                hintText: "Enter AadhaarCard No.",
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your Aadhaar card number.';
+                } else if (value.length < 12) {
+                  return 'Aadhaar card number must be 12 digits.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                hintText: "Enter Email Address",
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty ||
+                    !EmailValidator.validate(value)) {
+                  return 'Please enter a valid email.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: passwordController,
+              keyboardType: TextInputType.text,
+              obscureText: true,
+              decoration: const InputDecoration(
+                hintText: "Enter Password",
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a password.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: isLoading // Disable button when loading
+                  ? null
+                  : () {
+                if (validateForm()) {
+                  register();
+                  Firebbase_Controller.singUp(emailController.text.trim(),
+                      passwordController.text.trim());
+                  Firebbase_Controller.addUserData(
+                    emailController.text.trim(),
+                    passwordController.text.trim(),
+                    "Farmer",
+                  );
+                }
+              },
+              child: isLoading // Show loading indicator
+                  ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  CircularProgressIndicator(color: Colors.white),
+                  SizedBox(width: 10),
+                  Text("Submitting..."),
+                ],
+              )
+                  : const Text("Submit"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Row buildDateField(String labelText, String date,
+      Function(DateTime) onDatePicked) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -126,289 +365,6 @@ class _Add_FarmerState extends State<Add_Farmer> {
           child: const Text("Choose Date Of Birth"),
         ),
       ],
-    );
-  }
-
-  var dob = "Choose Date of Birth";
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Add_Farmer"), centerTitle: true),
-      body: Form(
-        key: KEY,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: <Widget>[
-                DropdownButton<String>(
-                  hint: Text('Select a village'),
-                  value: selectedVillage,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedVillage = newValue;
-                      fetchVillageFriendNames();
-                    });
-                  },
-                  items: villageNames.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                DropdownButton<String>(
-                  hint: Text('Select a GamMitra'),
-                  value: selectedVillageFriend,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedVillageFriend = newValue;
-                    });
-                  },
-                  items: villageFriendNames.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                _image == null
-                    ? Text('No image selected.')
-                    : CircleAvatar( radius: MediaQuery.of(context).size.width * 0.4, // Adjust the size as needed
-                  backgroundImage: FileImage(_image!),),
-                SizedBox(height: 20),
-               TextField(
-                  controller: name,
-                  keyboardType: TextInputType.text,
-                  decoration: InputDecoration(
-                    hintText: "Enter Farmer Name",
-                    hintStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                const SizedBox(height: 20),
-
-                buildDateField("Choose Date of Birth", dob, (picked) {
-                  setState(() {
-                    dob = "${picked.day}-${picked.month}-${picked.year}";
-                  });
-                }),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                  child: Text('Pick Image from Gallery'),
-                ),
-                SizedBox(height: 10),
-                Text("Or"),
-                ElevatedButton(
-                  onPressed: () => _pickImage(ImageSource.camera),
-                  child: Text('Pick Image from Camera'),
-                ),
-
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Radio.adaptive(
-                      value: 1,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value;
-                          result = "Male";
-                        });
-                      },
-                    ),
-                    const Text("Male"),
-                    Radio.adaptive(
-                      value: 2,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value;
-                          result = "Female";
-                        });
-                      },
-                    ),
-                    const Text("Female"),
-                  ],
-                ),
-
-                SizedBox(height: 10),
-                TextField(
-                  controller: contact,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10,
-                  decoration: InputDecoration(
-                    hintText: "Enter Contact No.",
-                    hintStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: aadhaarCard,
-                  keyboardType: TextInputType.number,
-                  maxLength: 12,
-                  decoration: InputDecoration(
-                    hintText: "Enter AadhaarCard No.",
-                    hintStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Enter EmailAddress",
-                    hintStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: password,
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  obscuringCharacter: "*",
-                  decoration: InputDecoration(
-                    hintText: "Enter Password",
-                    hintStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    if (name.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please enter your name.")),
-                      );
-                    } else if (contact.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Please enter your contact number."),
-                        ),
-                      );
-                    } else if (contact.text.length < 10) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Contact number must be at least 10 digits.",
-                          ),
-                        ),
-                      );
-                    } else if (aadhaarCard.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Please enter your Aadhaar card number."),
-                        ),
-                      );
-                    } else if (aadhaarCard.text.length < 12) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Aadhaar card number must be 12 digits."),
-                        ),
-                      );
-                    } else if (dob == "Choose Date of Birth") {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Please select your date of birth."),
-                        ),
-                      );
-                    } else if (selectedVillage == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please select your village.")),
-                      );
-                    } else if (EmailValidator.validate(email.text.toString()) !=
-                        true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Please Enter Valid Email")),
-                      );
-                    } else {
-                      register();
-                      Firebbase_Controller.singUp(email.text.toString(), password.text.toString());
-                      Firebbase_Controller.addUserData(
-                        email.text.toString(),
-                        password.text.toString(),
-                        "Farmer",
-                      );
-                    }
-                  },
-                  child: Text("Submit"),
-                ),
-                ElevatedButton(onPressed: (){
-                  name.clear();
-                  contact.clear();
-                  aadhaarCard.clear();
-                  email.clear();
-                  password.clear();
-                  dob = "Choose Date of Birth";
-                  _image=null;
-                  ScaffoldMessenger.of(
-                  context,
-                  ).showSnackBar(SnackBar(content: Text("Data Added")));
-
-                }, child: Text("Reset "))
-
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
