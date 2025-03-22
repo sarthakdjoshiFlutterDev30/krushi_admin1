@@ -76,7 +76,7 @@ class _Add_SarpanchState extends State<Add_Sarpanch> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Gam Mitra"),
+        title: Text("Add Sarpanch"),
         centerTitle: true,
         backgroundColor: Colors.transparent,
       ),
@@ -107,7 +107,7 @@ class _Add_SarpanchState extends State<Add_Sarpanch> {
                   controller: name,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
-                    hintText: "Enter Gam Mitra Name",
+                    hintText: "Enter Sarpanch Name",
                     hintStyle: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

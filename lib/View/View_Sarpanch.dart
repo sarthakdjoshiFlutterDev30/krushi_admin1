@@ -29,7 +29,7 @@ class _ViewSarpanchState extends State<ViewSarpanch> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No gms found.'));
+            return Center(child: Text('No Sarpanch found.'));
           }
 
           final GamMitra =

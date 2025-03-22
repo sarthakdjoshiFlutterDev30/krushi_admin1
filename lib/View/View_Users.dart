@@ -32,7 +32,7 @@ class _ViewUsersState extends State<ViewUsers> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('No farmers found.'));
+            return Center(child: Text('No Users found.'));
           }
 
           final Users =
@@ -55,6 +55,7 @@ class _ViewUsersState extends State<ViewUsers> {
                 ),
                 title: Text('Email:${User.Email}'),
                 subtitle: Text('Role:${User.Role}'),
+                trailing: Icon(Icons.remove_red_eye),
               );
             },
           );
