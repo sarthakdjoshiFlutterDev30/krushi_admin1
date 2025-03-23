@@ -185,7 +185,7 @@ class _FarmerDetailScreenState extends State<FarmerDetailScreen> {
             SizedBox(height: 8),
             Text('Aadhaar Card: ${widget.farmer.aadhaarCard}'),
             SizedBox(height: 8),
-            Text('Approve: ${widget.farmer.isApprove}'),
+            Text('Approve : ${widget.farmer.isApprove}'),
             SizedBox(height: 16),
             if (widget.isapprove == "No") ...[
               Row(
